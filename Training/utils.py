@@ -24,11 +24,7 @@ def download_dataset(class_subset=None):
                     if x.split('_')[1] != 'Plantae']
         for x in not_plants:
             shutil.rmtree(x)
-
-    #labels = set([x.split('_')[2] for x in os.listdir('data/2021_train_mini') 
-    #            if x.split('_')[1] == 'Plantae'])
-
-    #label_map = {x:y for x,y in zip(labels, range(len(labels)))}
+    # Create label annotations 
     img_locs = []
     for path, subdirs, files in os.walk('data/2021_train_mini'):
         for file in files:
@@ -42,7 +38,7 @@ def download_dataset(class_subset=None):
     else:
         subset = list(set([x.split("Plantae_")[1].split("/")[0] for x in img_locs]))[:class_subset]
     img_locs = [x for x in img_locs if x.split("Plantae_")[1].split("/")[0] in subset]
-    labels = [x.split("Plantae_")[1].split("_")[1] for x in img_locs]
+    labels = [" ".join(x.split("Plantae_")[1].split("_")[-2:]).split("/")[0] for x in img_locs]
     
     labels_map = {}
     i = 0
@@ -62,8 +58,7 @@ def download_dataset(class_subset=None):
     annotations_train.to_csv("data/annotations_train_file.csv",index=False)
     annotations_val.to_csv("data/annotations_val_file.csv",index=False)
     annotations_test.to_csv("data/annotations_test_file.csv",index=False)
-    #else:
-        #print("data already downloaded")
+
 
 def label_transform(labels, num_classes=14):
     labels_tensor = torch.tensor(labels)
