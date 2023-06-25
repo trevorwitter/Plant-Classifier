@@ -60,10 +60,21 @@ def download_dataset(class_subset=None):
     annotations_test.to_csv("data/annotations_test_file.csv",index=False)
 
 
-def label_transform(labels, num_classes=14):
-    labels_tensor = torch.tensor(labels)
-    one_hot = F.one_hot(labels_tensor, num_classes=num_classes)
-    return one_hot.type(torch.float32)
+#def label_transform(labels, num_classes=14):
+#    labels_tensor = torch.tensor(labels)
+#    one_hot = F.one_hot(labels_tensor, num_classes=num_classes)
+#    return one_hot.type(torch.float32)
+
+class LabelTransform():
+    def __init__(self):
+        df = pd.read_csv('data/annotations_train_file.csv')
+        self.num_classes = len(df['label'].unique())
+    
+    def transform(self, labels):
+        labels_tensor = torch.tensor(labels)
+        one_hot = F.one_hot(labels_tensor, num_classes=self.num_classes)
+        return one_hot.type(torch.float32)
+
 
 class PlantImageDataset(torch.utils.data.Dataset):
     """For working with plant images from the inaturalist dataset"""

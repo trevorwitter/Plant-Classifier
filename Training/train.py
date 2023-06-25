@@ -10,7 +10,7 @@ from torchvision import transforms
 from torchvision.io import read_image
 from PIL import Image
 
-from utils import download_dataset, PlantImageDataset, label_transform, accuracy_score
+from utils import download_dataset, PlantImageDataset, LabelTransform, accuracy_score
 from model import Net
 
 def training_loop(net, trainloader, valloader, gpu=False, epochs=1):
@@ -59,16 +59,16 @@ def main():
         #transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
-
+    label_transform = LabelTransform()
     train_data = PlantImageDataset(annotations_file="data/annotations_train_file.csv",
                              img_dir="data/2021_train_mini/",
                              transform=transform,
-                             target_transform=label_transform)
+                             target_transform=label_transform.transform)
 
     val_data = PlantImageDataset(annotations_file="data/annotations_val_file.csv",
                              img_dir="data/2021_train_mini/",
                              transform=transform,
-                             target_transform=label_transform)
+                             target_transform=label_transform.transform)
 
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True, num_workers=8)
     val_dataloader = torch.utils.data.DataLoader(val_data, batch_size=128, shuffle=True, num_workers=8)
