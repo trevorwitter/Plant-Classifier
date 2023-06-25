@@ -10,57 +10,43 @@ from torchvision import transforms
 from torchvision.io import read_image
 from PIL import Image
 
-from utils import download_dataset, PlantImageDataset, label_transform
+from utils import download_dataset, PlantImageDataset, label_transform, accuracy_score
 from model import Net
 
-def training_loop(net, trainloader, valloader, gpu=False, epochs=2):
-    #trainloader = torch.utils.data.DataLoader(trainset,
-    #                                          batch_size=batch_size,
-    #                                          shuffle=True,
-    #                                          num_workers=2)
+def training_loop(net, trainloader, valloader, gpu=False, epochs=1):
     if gpu == False:
         device = torch.device("cpu")
     elif gpu == True:
         device = torch.device("mps")
     net = net.to(device)
     
-    #criterion = nn.CrossEntropyLoss()
-    criterion = nn.MSELoss()
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     for epoch in range(epochs): # loop over thef dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
-            # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
             inputs = inputs.to(device)
             labels = labels.to(device)
             
-            # zero the parameter gradients
             optimizer.zero_grad()
-            
-            # forward + backward + optimize
             outputs = net(inputs)
             train_loss = criterion(outputs, labels)
-
-            #val_outputs = net(val_inputs)
-            #val_loss = criterion(val_outputs, val_labels)
             train_loss.backward()
             optimizer.step()
             
             # print statistics
             running_loss += train_loss.item()
-            if i % 200 == 199:  # print every 2000 mini-batches
+            if i % 200 == 199:  # print every 200 mini-batches
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 200:.8f}')
                 running_loss = 0.0
-        with torch.no_grad():
-            for i, data in enumerate(testloader, 0):
-                inputs, labels = data
-                inputs = inputs.to(device)
-                labels = labels.to(device)
-                outputs = net(inputs)
-                val_loss = criterion(outputs, labels)
 
-    print('Training Complete')
+        train_acc = accuracy_score(net, trainloader, gpu=gpu)
+        val_acc = accuracy_score(net, valloader, gpu=gpu)
+        print(f"Epoch {epoch} train_acc: {train_acc}, val_acc: {val_acc}")
+    PATH = './models/plant_net.pth'
+    torch.save(net.state_dict(), PATH)
+    print(f'Training complete - model saved to {PATH}')
 
 
 def main():

@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def download_dataset():
+def download_dataset(class_subset=None):
     if os.path.isdir('./data/2021_train_mini/') == False:
         trainset = torchvision.datasets.INaturalist(root='./data/',
                                                     version='2021_train_mini',
@@ -37,16 +37,13 @@ def download_dataset():
             else:
                 img = path[21:] + "/" + file
                 img_locs.append(img)
-    subset = list(set([x.split("Plantae_")[1].split("/")[0] for x in img_locs]))[:14]
+    if class_subset == None:
+        subset = list(set([x.split("Plantae_")[1].split("/")[0] for x in img_locs]))
+    else:
+        subset = list(set([x.split("Plantae_")[1].split("/")[0] for x in img_locs]))[:class_subset]
     img_locs = [x for x in img_locs if x.split("Plantae_")[1].split("/")[0] in subset]
     labels = [x.split("Plantae_")[1].split("_")[1] for x in img_locs]
-    '''labels_map = {
-        "Bryophyta":0,
-        "Chlorophyta":1,
-        "Marchantiophyta":2,
-        "Rhodophyta":3,
-        "Tracheophyta":4,
-    }'''
+    
     labels_map = {}
     i = 0
     for x in set(labels):
@@ -103,3 +100,28 @@ def multi_acc(y_pred, y_test):
     acc = correct_pred.sum() / len(correct_pred)
     acc = torch.round(acc * 100)
     return acc
+
+
+def accuracy_score(net, data_loader, gpu=False):
+    """Returns classifier accuracy score"""
+    if gpu == False:
+        device = torch.device("cpu")
+    elif gpu == True:
+        device = torch.device("mps")
+    net = net.to(device)
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in data_loader:
+            inputs, labels = data
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            outputs = net(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    return correct/total
+
+
+if __name__ == "__main__":
+    download_dataset()
