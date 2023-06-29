@@ -4,4 +4,5 @@ scratch/
 *.json
 data/*
 training/data/*
+training/scratch*
 models/*
