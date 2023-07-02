@@ -21,7 +21,7 @@ def training_loop(net, trainloader, valloader, gpu=False, epochs=1):
     net = net.to(device)
     
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.00001, momentum=0.9)
+    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     for epoch in range(epochs): 
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
